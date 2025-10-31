@@ -28,7 +28,6 @@ export class AuthPage {
     await this.elements.emailInput.waitFor({ state: 'visible' });
   }
 
-  // Вспомогательные методы
   private normalize(text: string): string {
     return text.replace(/\s+/g, ' ').trim().toLowerCase();
   }
@@ -64,11 +63,9 @@ export class AuthPage {
   }
 
   async openSignUpForm(): Promise<void> {
-    // Сначала пробуем явную кнопку "Sign Up Now"
     if (await this.elements.signUpNowButton.isVisible().catch(() => false)) {
       await this.elements.signUpNowButton.click();
     } else {
-      // Фоллбек: ищем любую кнопку/ссылку c текстом "Sign Up"
       const btn = this.page.getByRole('button', { name: /sign up/i });
       const link = this.page.getByRole('link', { name: /sign up/i });
       if (await btn.isVisible().catch(() => false)) {
@@ -78,7 +75,6 @@ export class AuthPage {
       }
     }
 
-    // Дожидаемся открытия формы регистрации (поле First Name)
     const firstNameField = this.page
       .locator('app-input')
       .filter({ hasText: 'First Name' })
