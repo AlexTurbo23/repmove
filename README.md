@@ -1,144 +1,142 @@
-🚀 Overview
+## 🚀 Обзор
 
-This repository contains a modular, scalable automation framework built on Playwright + TypeScript, using the Page Object Model (POM) and OOP principles.
+Автоматизация UI-тестов на Playwright + TypeScript по паттерну Page Object Model (POM). Репозиторий готов для локальных прогонов и интеграции в CI.
 
-The framework supports:
+Ключевые возможности:
 
-✅ UI & API test execution
+- UI-тесты (репорты HTML из коробки)
+- Конфигурация окружений через переменные среды
+- Параметризация и переиспользуемые Page Object-ы
 
-✅ Configurable environments via .env or environment variables
+## 🧰 Технологии
 
-✅ Built-in HTML reports
+- Язык: TypeScript
+- Тест-раннер: Playwright
+- Паттерн: Page Object Model (POM)
+- Отчёты: Playwright HTML Reporter
+- CI: готовность к GitHub Actions / Jenkins
 
-✅ Parameterized & data-driven test scenarios
+## ✅ Требования
 
-🧰 Tech Stack
-Layer Technology
-Language TypeScript
-Test Runner Playwright
-Design Pattern Page Object Model (POM)
-Reporting Playwright HTML Reporter
-Version Control Git / GitHub
-CI-ready Compatible with GitHub Actions / Jenkins
-⚙️ Setup Instructions
+- Node.js 18+ (проверьте: `node -v`)
+- Интернет для установки браузеров Playwright
 
-1. Prerequisites
+## ⚙️ Установка (Windows PowerShell)
 
-Node.js 18+ (check via node -v)
+1. Установить зависимости (используется `package-lock.json`):
 
-Internet access (for browser installation)
-
-2. Installation
-
-# Clone the repository
-
-git clone https://github.com/your-org/repmove.git
-cd repmove
-
-# Install dependencies
-
+```powershell
 npm ci
+```
 
-# Install Playwright browsers (first time only)
+2. Установить браузеры Playwright (один раз на машину):
 
+```powershell
 npx playwright install
+```
 
-3. Environment Configuration
+## 🔧 Конфигурация окружения
 
-The framework uses environment variables and a config file.
+- Базовый URL задаётся переменной `BASE_URL` (по умолчанию берётся из `playwright.config.ts`):
+  - По умолчанию: `http://dev-repmove-enterprise.web.app/`
+- Переопределить на время текущей PowerShell-сессии:
 
-You can define:
+```powershell
+$env:BASE_URL = "https://your-env.example.com/"
+```
 
-BASE_URL=https://dev-repmove-enterprise.web.app/
-TEST_EMAIL=test@example.com
-TEST_PASSWORD=Qwerty123!
+- Тестовые учётные данные — файл `utils/credentials.ts`:
 
-Alternatively, you can export them in PowerShell:
+```typescript
+// utils/credentials.ts
+const credentials = {
+  email: 'user@example.com',
+  password: 'Str0ngP@ssword',
+  emailEmpty: '',
+  passwordEmpty: '',
+  invalidEmail: 'user@example.',
+};
+export default credentials;
+```
 
-$env:BASE_URL = "https://staging.repmove.app/"
+## 🗂️ Структура проекта
 
-Or use the default values defined in playwright.config.ts.
+- `pages/` — Page Object-ы (`AuthPage`, `RegistrationPage`)
+- `tests/` — тесты (`auth.spec.ts`, `reg.spec.ts`)
+- `utils/` — хелперы и данные (`credentials.ts`)
+- `playwright.config.ts` — глобальная конфигурация тестов
+- `playwright-report/` — HTML-отчёты (генерируются автоматически)
+- `test-results/` — артефакты прогона (трейсы, скриншоты и т. п.)
 
-4. Project Structure
-   📦 repmove-e2e/
-   ├── 📁 pages/ # Page Object classes (AuthPage, RegistrationPage, etc.)
-   ├── 📁 tests/ # Test suites (auth.spec.ts, reg.spec.ts, etc.)
-   ├── 📁 utils/ # Helpers, test data, and credentials
-   │ ├── credentials.ts
-   ├── 📁 reports/ # HTML reports (auto-generated)
-   ├── playwright.config.ts # Global test config
-   ├── package.json
-   └── README.md
+## ▶️ Запуск тестов
 
-🧩 Running the Tests
-All tests
+Запуск всех тестов:
+
+```powershell
 npx playwright test
+```
 
-Single test file
-npx playwright test tests/auth.spec.ts
+Или через npm-скрипты:
 
-Run specific test by title
+```powershell
+npm run test        # все тесты
+npm run test:ui     # UI-режим (удобно для локальной отладки)
+npm run test:headed # видимый браузер
+npm run report      # открыть последний HTML-отчёт
+```
+
+Точечные запуски:
+
+```powershell
+# Один файл
+npx playwright test .\tests\auth.spec.ts
+
+# По названию теста/сьюта
 npx playwright test -g "User successfully logged in"
+```
 
-Run tests in headed (visible browser) mode
-npm run test:headed
+## 🧱 Примеры
 
-Run in UI mode
-npm run test:ui
+`tests/auth.spec.ts` (фрагмент):
 
-View last report
-npm run report
-
-🧱 Example Tests
-
-auth.spec.ts
-
+```typescript
 test('User successfully logged in; redirected to main page.', async ({ page }) => {
-const auth = new AuthPage(page);
-await auth.open('/');
-await auth.login(credentials.email, credentials.password);
-await auth.verifyLogoutBtn();
+  const auth = new AuthPage(page);
+  await auth.open('/');
+  await auth.login(credentials.email, credentials.password);
+  await auth.verifyLogoutBtn();
 });
+```
 
-reg.spec.ts
+## 🔍 Отладка и отчёты
 
-test('User cannot register with existing email.', async ({ page }) => {
-const reg = new RegistrationPage(page);
-await reg.open('/');
-await reg.fillCredentials('John', 'Doe', 'Acme Corp', 'test.exist@gmail.com', 'Qwerty123!');
-await reg.submit();
-await reg.verifyToastMessage('Email already registered');
-});
+- Включить трейс на каждый первый ретрай (уже настроено в конфиге): `trace: 'on-first-retry'`.
+- Открыть HTML-отчёт после прогона:
 
-🧩 Key Features
+```powershell
+npm run report
+```
 
-✅ Page Object Model (OOP-based)
+Полезно знать:
 
-✅ Configurable via environment
+- Отчёты: `playwright-report/`
+- Артефакты и трейсы: `test-results/`
 
-✅ Multi-browser support (Chromium, Firefox, WebKit)
+## 🧩 Полезные скрипты
 
-✅ HTML + JSON reports
+В `package.json` доступны:
 
-✅ Retry logic for unstable tests
+- `test` — запуск тестов
+- `test:ui` — UI-режим
+- `test:headed` — видимый браузер
+- `report` — открыть последний отчёт
+- `codegen` — генератор шагов (интерактивный рекордер)
 
-✅ Reusable utility methods
+## ❗️ Troubleshooting
 
-🔍 Debugging & Reporting
+- “Browser not found” — выполните `npx playwright install`.
+- Переменные окружения не применяются — задайте через `$env:BASE_URL = "..."` (в текущей сессии) или используйте значения по умолчанию из `playwright.config.ts`.
+- Таймауты — проверьте доступность `BASE_URL` и сеть; при необходимости увеличьте таймауты в конфиге.
+- Флаки — используйте ретраи (в CI уже включены) и ожидайте видимость элементов (`waitFor`, `expect(...).toBeVisible`).
 
-To record video, screenshots, and logs:
-
-npx playwright test --trace on
-
-To open report:
-
-npx playwright show-report
-
-Artifacts (screenshots, traces) are saved automatically in /test-results.
-
-🧠 Troubleshooting
-Issue Solution
-Tests fail with browser not found Run npx playwright install
-ENV not applied Use $env:BASE_URL = "..." or update .env
-Timeout exceeded Check your baseURL and network connection
-Flaky tests Use retries (--retries=2) or waitForLoadState()
+---
