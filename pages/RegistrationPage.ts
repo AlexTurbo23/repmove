@@ -53,32 +53,23 @@ export class RegistrationPage {
     return `${name}+${random}@${domain}`;
   }
 
-  async fillSignUpFormWithUniqueEmail(
-    firstName: string,
-    lastName: string,
-    companyName: string,
-    password: string,
-    phone: string,
-  ): Promise<void> {
-    await this.elements.firstNameField.fill(firstName);
-    await this.elements.lastNameField.fill(lastName);
-    await this.elements.companyNameField.fill(companyName);
-    await this.elements.emailField.fill(this.generateUniqueEmail());
-    await this.elements.passwordField.fill(password);
-    await this.selectRandomIndustry();
-    await this.selectCountry();
-    await this.elements.phoneField.fill(phone);
-    await this.clickSignUpBtn();
+  private async waitForForm(): Promise<void> {
+    await this.elements.firstNameField.waitFor({ state: 'visible' });
   }
 
   async fillSignUpForm(
     firstName: string,
     lastName: string,
     companyName: string,
-    email: string,
     password: string,
     phone: string,
+    options?: { email?: string; uniqueEmail?: boolean },
   ): Promise<void> {
+    const email =
+      options?.email ??
+      (options?.uniqueEmail === false ? 'test@gmail.com' : this.generateUniqueEmail());
+
+    await this.waitForForm();
     await this.elements.firstNameField.fill(firstName);
     await this.elements.lastNameField.fill(lastName);
     await this.elements.companyNameField.fill(companyName);
@@ -102,8 +93,7 @@ export class RegistrationPage {
       'Rep Agency',
       'Equipment Rental',
       'Other Industry',
-    ];
-
+    ] as const;
     const randomIndustry = industries[Math.floor(Math.random() * industries.length)];
     await this.page.locator('[formcontrolname="industry"]').click();
     await this.page.getByRole('option', { name: randomIndustry }).click();
@@ -118,8 +108,8 @@ export class RegistrationPage {
     await this.elements.signUpButton.click();
   }
 
-  async verifyToastMessage(): Promise<void> {
+  async verifyToastMessage(text: string): Promise<void> {
     await expect(this.elements.toastMessage).toBeVisible();
-    await expect(this.elements.toastMessage).toContainText('Invalid to sign up');
+    await expect(this.elements.toastMessage).toContainText(text);
   }
 }

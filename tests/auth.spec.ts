@@ -2,13 +2,15 @@ import { test } from '@playwright/test';
 import { AuthPage } from '../pages/AuthPage';
 import credentials from '../utils/credentials';
 
-test.describe('Test 1 - Successful login', () => {
-  test('User successfully logged in; redirected to main page.', async ({ page }) => {
-    const auth = new AuthPage(page);
-    await test.step('Open main page', async () => {
-      await auth.open('/');
-    });
+let auth: AuthPage;
 
+test.beforeEach(async ({ page }) => {
+  auth = new AuthPage(page);
+  await auth.open('/');
+});
+
+test.describe('Login flow', () => {
+  test('Test 1 - Successful login', async () => {
     await test.step('Perform login', async () => {
       await auth.login(credentials.email, credentials.password);
     });
@@ -17,36 +19,22 @@ test.describe('Test 1 - Successful login', () => {
       await auth.verifyLogoutBtn();
     });
   });
-});
 
-test.describe('Test 2 - Login with empty fields', () => {
-  test('Validation errors shown; cannot submit.', async ({ page }) => {
-    const auth = new AuthPage(page);
-    await test.step('Open main page', async () => {
-      await auth.open('/');
-    });
-
-    await test.step('Perform login', async () => {
+  test('Test 2 - Login with empty fields', async () => {
+    await test.step('Perform login with empty fields', async () => {
       await auth.login(credentials.emailEmpty, credentials.passwordEmpty);
     });
 
-    await test.step('Verify error messages are displayed', async () => {
+    await test.step('Verify validation error messages are displayed', async () => {
       await auth.verifyErrorMessages([
         'Please, enter your email address',
         'The Password is required',
       ]);
     });
   });
-});
 
-test.describe('Test 3 - Invalid email format in login', () => {
-  test("Error message 'Invalid email address' displayed.", async ({ page }) => {
-    const auth = new AuthPage(page);
-    await test.step('Open main page', async () => {
-      await auth.open('/');
-    });
-
-    await test.step('Perform login', async () => {
+  test('Test 3 - Invalid email format in login', async () => {
+    await test.step('Perform login with invalid email format', async () => {
       await auth.login(credentials.invalidEmail, credentials.password);
     });
 

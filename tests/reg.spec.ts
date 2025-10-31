@@ -2,25 +2,27 @@ import { test } from '@playwright/test';
 import { AuthPage } from '../pages/AuthPage';
 import { RegistrationPage } from '../pages/RegistrationPage';
 
-test.describe('Test 1 - Successful registration with valid data', () => {
-  test('Account successfully created; redirected to dashboard.', async ({ page }) => {
-    const auth = new AuthPage(page);
-    const reg = new RegistrationPage(page);
-    await test.step('Open main page', async () => {
-      await auth.open('/');
-    });
+let auth: AuthPage;
+let reg: RegistrationPage;
 
-    await test.step('Open sign up form', async () => {
-      await auth.openSignUpForm();
-    });
+test.beforeEach(async ({ page }) => {
+  auth = new AuthPage(page);
+  reg = new RegistrationPage(page);
 
+  await auth.open('/');
+  await auth.openSignUpForm();
+});
+
+test.describe('Registration flow', () => {
+  test('Test 1 - Successful registration with valid data', async () => {
     await test.step('Fill registration form', async () => {
-      await reg.fillSignUpFormWithUniqueEmail(
+      await reg.fillSignUpForm(
         'TestFirstName',
         'TestLastName',
         'TestCompany',
         'Qwerty123!',
         '664089599',
+        { uniqueEmail: true },
       );
     });
 
@@ -28,23 +30,9 @@ test.describe('Test 1 - Successful registration with valid data', () => {
       await auth.verifyLogoutBtn();
     });
   });
-});
 
-test.describe('Test 2 - Empty form submission', () => {
-  test('Form validation triggered, error messages displayed; submission blocked.', async ({
-    page,
-  }) => {
-    const auth = new AuthPage(page);
-    const reg = new RegistrationPage(page);
-    await test.step('Open main page', async () => {
-      await auth.open('/');
-    });
-
-    await test.step('Open sign up form', async () => {
-      await auth.openSignUpForm();
-    });
-
-    await test.step('Fill registration form', async () => {
+  test('Test 2 - Empty form submission', async () => {
+    await test.step('Send empty form', async () => {
       await reg.clickSignUpBtn();
     });
 
@@ -59,32 +47,24 @@ test.describe('Test 2 - Empty form submission', () => {
       ]);
     });
   });
-});
 
-test.describe('Test 3 - Registration with existing email', () => {
-  test(' Account is not created; user remains on the registration page.', async ({ page }) => {
-    const auth = new AuthPage(page);
-    const reg = new RegistrationPage(page);
-    await test.step('Open main page', async () => {
-      await auth.open('/');
-    });
-
-    await test.step('Open sign up form', async () => {
-      await auth.openSignUpForm();
-    });
-
-    await test.step('Fill registration form', async () => {
+  test('Test 3 - Registration with existing email', async () => {
+    await test.step('Fill registration form with existing email', async () => {
       await reg.fillSignUpForm(
         'TestFirstName',
         'TestLastName',
         'TestCompany',
-        'turbo2387@mailinator.com',
         'Qwerty123!',
         '664089599',
+        {
+          email: 'turbo2387@mailinator.com',
+          uniqueEmail: false,
+        },
       );
     });
+
     await test.step('Verify toast message after registration with existing email', async () => {
-      await reg.verifyToastMessage();
+      await reg.verifyToastMessage('Invalid to sign up');
     });
   });
 });
